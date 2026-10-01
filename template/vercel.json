@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "python",
+  "crons": [
+    {
+      "path": "/api/cron/validate-tokens",
+      "schedule": "17 3 * * *"
+    }
+  ]
+}

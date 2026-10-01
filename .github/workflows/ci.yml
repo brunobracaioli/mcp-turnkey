@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  template:
+    name: Template checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy src
+      - run: pytest -q
+      - run: pip-audit -r requirements.txt
+
+  scaffold:
+    name: Scaffold end to end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install the template's dependencies (the generated project reuses them)
+        run: pip install -e "template[dev]"
+      - name: Lint and type-check the scaffold
+        run: ruff check . && mypy
+      - name: Scaffold tests
+        run: pytest -q
+      - name: Generate a project and run its checks unedited
+        run: |
+          python scripts/scaffold.py --name acme-crm --title "Acme CRM" --dest "$RUNNER_TEMP/mcp-acme-crm"
+          cd "$RUNNER_TEMP/mcp-acme-crm"
+          pip install -e ".[dev]"
+          ruff check . && ruff format --check . && mypy src && pytest -q
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

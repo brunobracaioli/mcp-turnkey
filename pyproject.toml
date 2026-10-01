@@ -1,0 +1,21 @@
+# Tooling for the scaffold itself. The template has its own pyproject.toml.
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["template"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S", "RUF", "PL", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S603", "PLR2004"]
+"scripts/**" = ["T201"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts"]

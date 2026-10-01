@@ -1,0 +1,22 @@
+# Never upload local secrets or local-only artifacts to Vercel.
+.env
+.env.local
+.env.*.local
+.secrets/
+client_secret_*.json
+# Deps come from requirements.txt; keep Vercel from building the package via uv.
+pyproject.toml
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+tests/
+docs/
+scripts/
+supabase/
+.github/
+.claude/
+.mcp.json
+*.md

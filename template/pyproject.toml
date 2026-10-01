@@ -1,0 +1,70 @@
+[project]
+name = "mcp-bootstrap"
+version = "0.1.0"
+description = "Multi-tenant MCP server for the Bootstrap API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    # Capped below 2.0: the 2.x line dropped ``mcp.server.fastmcp``, which this server
+    # imports at module load. An unbounded pin lets a fresh build resolve 2.0 and crash
+    # every route with 500.
+    "mcp[cli]>=1.12,<2",
+    "httpx>=0.27,<1",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "uvicorn>=0.30",
+    "cryptography>=43",
+    "pyjwt[crypto]>=2.9,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "pip-audit>=2.7",
+]
+
+[project.scripts]
+mcp-bootstrap = "mcp_bootstrap.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_bootstrap"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "S", "RUF", "PL", "SIM"]
+ignore = [
+    "PLR0911", # many early returns are the guard-clause style we want
+    "PLR0913", # keyword-only parameters keep call sites explicit
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "PLR2004", "PLC0415"]
+"scripts/**" = ["T201"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+
+[tool.coverage.run]
+source = ["mcp_bootstrap"]
