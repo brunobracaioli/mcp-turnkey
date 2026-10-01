@@ -2,11 +2,19 @@
   <img src="docs/assets/banner.jpg" alt="MCP Turnkey — servidores MCP multi-tenant, prontos para produção, em Python, gerados com um comando" width="100%">
 </p>
 
+<p align="center">
+  <a href="README.md"><img alt="English" src="https://img.shields.io/badge/lang-English-4b5563?style=for-the-badge"></a>
+  <a href="README.pt-BR.md"><img alt="Português (Brasil)" src="https://img.shields.io/badge/lang-Portugu%C3%AAs_(Brasil)-7c3aed?style=for-the-badge"></a>
+</p>
+
 # MCP Turnkey
 
 **Servidores MCP multi-tenant, prontos para produção, em Python — gerados com um comando.**
 
-[English](README.md)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](template/pyproject.toml)
+[![mypy strict](https://img.shields.io/badge/mypy-strict-success)](template/pyproject.toml)
+[![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1%20%2B%20DCR%20%2B%20PKCE-orange)](template/docs/adr/0002-server-as-oauth-authorization-server.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 A maioria dos exemplos de servidor MCP é demo de um usuário só, via stdio. Na hora em
 que você quer colocar um na internet — para que *cada usuário* conecte *a própria*
@@ -23,6 +31,37 @@ OAuth.
 python scripts/scaffold.py --name acme-crm --title "Acme CRM"
 # → ../mcp-acme-crm: pacote mcp_acme_crm, slug acme_crm, testes verdes
 ```
+
+## Por que o MCP Turnkey
+
+**Construa as tools — não o OAuth.** O diferencial está no que quase ninguém entrega
+pronto:
+
+1. **Resolve a parte difícil do MCP remoto.** Para o claude.ai conectar, o servidor
+   precisa ser um Authorization Server OAuth 2.1 completo, com descoberta, Dynamic Client
+   Registration e PKCE. A maioria dos exemplos é stdio para um usuário só; este já nasce
+   multi-tenant, com cada usuário conectando a própria conta.
+2. **Segurança que é fácil deixar passar, já embutida.**
+   - Proteção contra o ataque de *confused deputy*, que a spec MCP exige e poucos
+     templates implementam.
+   - Tokens upstream cifrados com AES-256-GCM, atrás de row-level security default-deny.
+   - O tenant vem só da credencial, então nenhum prompt alcança os dados de outro usuário.
+   - Threat model STRIDE que acompanha cada servidor gerado.
+3. **Um servidor de verdade, testado — não um gerador de código.** São cerca de 200
+   testes, incluindo o fluxo OAuth inteiro sem rede, e o CI prova a cada push que um
+   projeto recém-gerado passa nos próprios testes sem nenhuma edição.
+4. **Lições de produção já pagas.**
+   O [`production-lessons.md`](docs/explanation/production-lessons.md) lista falhas reais
+   e suas correções:
+   - o 405 no GET, que evita pagar por streams SSE ociosos;
+   - o 503 em vez de 401 quando o backend cai, para o cliente não descartar uma
+     credencial boa;
+   - os logs do httpx que vazavam tokens.
+
+   O mesmo CI barrou um bump de dependência para o `mcp` 2.x que quebraria todas as rotas.
+5. **Feito para agentes de código.** `CLAUDE.md`, hooks do Claude Code, ADRs e specs
+   acompanham cada servidor gerado, para que um agente como o Claude Code o evolua
+   respeitando as regras.
 
 ## O que vem pronto
 
@@ -113,6 +152,22 @@ A stack é propositalmente sem surpresas: o SDK oficial `mcp` (FastMCP), Starlet
 Pydantic, Vercel, Supabase e Upstash. Armazenamento, cache e upstream ficam atrás de
 portas (`domain/ports.py`), então trocar o Supabase por outro banco é um adaptador, não
 uma reescrita.
+
+## Limitações
+
+Limites honestos, para você decidir rápido:
+
+- **Stack opinativa.** Vercel, Supabase e Upstash prontos para uso. Armazenamento, cache e
+  upstream ficam atrás de portas, então trocar um deles é escrever um adaptador — mas
+  nenhum outro adaptador vem pronto hoje.
+- **Transporte stateless.** Cada requisição é autocontida: não há notificações do servidor
+  para o cliente nem streams SSE.
+- **Servidores gerados são donos do próprio código.** Melhorias futuras do template não
+  chegam sozinhas aos servidores já gerados; porte à mão (o
+  [`production-lessons.md`](docs/explanation/production-lessons.md) lista o que mudou).
+- **APIs sem OAuth** (tokens estáticos) precisam do
+  [how-to de BYOT](template/docs/how-to/switch-to-byot-login.md): uma mudança documentada,
+  não uma chave liga/desliga.
 
 ## Checks
 

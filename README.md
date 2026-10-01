@@ -2,6 +2,11 @@
   <img src="docs/assets/banner.jpg" alt="MCP Turnkey — production-grade, multi-tenant MCP servers in Python, scaffolded in one command" width="100%">
 </p>
 
+<p align="center">
+  <a href="README.md"><img alt="English" src="https://img.shields.io/badge/lang-English-7c3aed?style=for-the-badge"></a>
+  <a href="README.pt-BR.md"><img alt="Português (Brasil)" src="https://img.shields.io/badge/lang-Portugu%C3%AAs_(Brasil)-4b5563?style=for-the-badge"></a>
+</p>
+
 # MCP Turnkey
 
 **Production-grade, multi-tenant MCP servers in Python — scaffolded in one command.**
@@ -10,8 +15,6 @@
 [![mypy strict](https://img.shields.io/badge/mypy-strict-success)](template/pyproject.toml)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1%20%2B%20DCR%20%2B%20PKCE-orange)](template/docs/adr/0002-server-as-oauth-authorization-server.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
-
-[Português (Brasil)](README.pt-BR.md)
 
 Most MCP server examples are single-user, stdio-only demos. The moment you want to put
 one on the internet — so that *each user* connects *their own* account from claude.ai,
@@ -27,6 +30,37 @@ renamed copy wired to your provider, and spend your time on the tools — not on
 python scripts/scaffold.py --name acme-crm --title "Acme CRM"
 # → ../mcp-acme-crm: package mcp_acme_crm, slug acme_crm, green test suite
 ```
+
+## Why MCP Turnkey
+
+**Build the tools — not the OAuth.** What sets it apart is the part almost nobody ships
+ready-made:
+
+1. **It solves the hard part of remote MCP.** For claude.ai to connect, your server has
+   to be a complete OAuth 2.1 Authorization Server — discovery, Dynamic Client
+   Registration, PKCE. Most examples are single-user stdio; this one is multi-tenant from
+   day one, with every user connecting their own account.
+2. **Security that is easy to miss, built in.**
+   - Protection against the *confused deputy* attack, which the MCP specification requires
+     and few starters implement.
+   - Upstream tokens encrypted with AES-256-GCM, behind default-deny row-level security.
+   - The tenant comes only from the credential, so no prompt can reach another user's data.
+   - A STRIDE threat model that ships with every generated server.
+3. **A real, tested server — not a code generator.** About 200 tests, including the whole
+   OAuth flow without network, and CI proves on every push that a freshly generated
+   project passes its own suite without a single edit.
+4. **Production lessons, already paid for.**
+   [`production-lessons.md`](docs/explanation/production-lessons.md) lists real failures
+   and their fixes:
+   - the 405 on GET that stops billing for idle SSE streams;
+   - the 503 instead of 401 when the backend is down, so clients keep their good
+     credentials;
+   - the httpx logs that leaked tokens.
+
+   The same CI blocked a dependency bump to `mcp` 2.x that would have broken every route.
+5. **Built for coding agents.** A `CLAUDE.md`, Claude Code hooks, ADRs and specs travel
+   with every generated server, so an agent such as Claude Code can extend it while
+   keeping to the rules.
 
 ## What you get
 
@@ -115,6 +149,22 @@ The stack is deliberately boring: the official `mcp` SDK (FastMCP), Starlette, h
 Pydantic, Vercel, Supabase and Upstash. Storage, cache and the upstream sit behind ports
 (`domain/ports.py`), so swapping Supabase for another database is an adapter, not a
 rewrite.
+
+## Trade-offs
+
+Honest limits, so you can decide quickly:
+
+- **Opinionated stack.** Vercel, Supabase and Upstash out of the box. Storage, cache and
+  the upstream sit behind ports, so swapping one is an adapter — but no other adapters
+  ship today.
+- **Stateless transport.** Every request is self-contained: no server-to-client
+  notifications or SSE streams.
+- **Generated servers own their code.** Later template improvements do not reach servers
+  you already generated; port them by hand
+  ([`production-lessons.md`](docs/explanation/production-lessons.md) lists what changed).
+- **APIs without OAuth** (static tokens) need the
+  [BYOT how-to](template/docs/how-to/switch-to-byot-login.md): a documented change, not a
+  switch.
 
 ## Documentation
 
