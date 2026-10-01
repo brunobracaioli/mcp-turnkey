@@ -143,24 +143,26 @@ class TenantAuthMiddleware:
                 send,
                 405,
                 "method_not_allowed",
-                {"Allow": ", ".join(sorted(MCP_ALLOWED_METHODS))},
+                headers={"Allow": ", ".join(sorted(MCP_ALLOWED_METHODS))},
             )
             return
         challenge = {"WWW-Authenticate": f'Bearer resource_metadata="{self._prm_url()}"'}
         bearer = bearer_token(Headers(scope=scope).get("authorization"))
         if not bearer:
-            await _json(scope, receive, send, 401, "missing_token", challenge)
+            await _json(scope, receive, send, 401, "missing_token", headers=challenge)
             return
         try:
             identity = await self._resolver.verify_token(bearer)
         except AuthError:
-            await _json(scope, receive, send, 401, "invalid_token", challenge)
+            await _json(scope, receive, send, 401, "invalid_token", headers=challenge)
             return
         except (BackendError, ConfigError):
             # The store/cache/config behind verification failed — not the credential.
             # Never 401 here: it would tell a legitimate caller to discard a good key.
             logger.exception("token_verification_unavailable")
-            await _json(scope, receive, send, 503, "backend_unavailable", {"Retry-After": "30"})
+            await _json(
+                scope, receive, send, 503, "backend_unavailable", headers={"Retry-After": "30"}
+            )
             return
         token = current_scope.set(self._resolver.build_request_scope(identity.tenant_id))
         try:
@@ -175,6 +177,7 @@ async def _json(
     send: Send,
     status: int,
     error: str,
+    *,
     headers: MutableMapping[str, str] | None = None,
 ) -> None:
     response = JSONResponse({"error": error}, status_code=status, headers=dict(headers or {}))

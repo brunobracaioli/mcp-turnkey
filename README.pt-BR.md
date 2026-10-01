@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.jpg" alt="MCP Turnkey — servidores MCP multi-tenant, prontos para produção, em Python, gerados com um comando" width="100%">
+</p>
+
 # MCP Turnkey
 
 **Servidores MCP multi-tenant, prontos para produção, em Python — gerados com um comando.**

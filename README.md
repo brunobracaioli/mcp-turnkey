@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.jpg" alt="MCP Turnkey — production-grade, multi-tenant MCP servers in Python, scaffolded in one command" width="100%">
+</p>
+
 # MCP Turnkey
 
 **Production-grade, multi-tenant MCP servers in Python — scaffolded in one command.**

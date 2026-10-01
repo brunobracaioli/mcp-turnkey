@@ -23,8 +23,10 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "respx>=0.21",
-    "ruff>=0.5",
-    "mypy>=1.10",
+    # Linters gain rules in minor releases: an unbounded pin breaks CI with no code
+    # change. Bump these deliberately (Dependabot opens the PR, CI proves it).
+    "ruff>=0.16,<0.17",
+    "mypy>=2.4,<2.5",
     "pip-audit>=2.7",
 ]
 

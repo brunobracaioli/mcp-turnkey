@@ -7,6 +7,10 @@ updates:
     groups:
       python:
         patterns: ["*"]
+    ignore:
+      # mcp 2.x removed mcp.server.fastmcp: widening the cap crashes every route (ADR 0001).
+      - dependency-name: "mcp"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

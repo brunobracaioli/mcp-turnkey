@@ -6,6 +6,8 @@ from an older version of this template, this is the list worth porting.
 
 | Symptom | Root cause | What the template does |
 |---|---|---|
+| CI went red on `main` with no code change | Linters pinned without an upper bound: a new ruff release added a rule | `ruff`/`mypy` pinned to a minor range; Dependabot proposes bumps as PRs that CI must pass |
+| A dependency bot proposed re-opening a known crash | Dependabot widened `mcp<2` to `<3` | Dependabot `ignore` for major `mcp` updates, with the reason next to it |
 | Every route answered 500 after a routine redeploy | `mcp` without an upper bound resolved 2.x, which removed `mcp.server.fastmcp` | `mcp[cli]>=1.12,<2` in `pyproject.toml` and `requirements.txt` |
 | Every route answered 404 on Vercel | A rewrite to `/api/index` without a root `app.py` that Vercel's Python runtime detects | Root `app.py` re-exports the ASGI app; `vercel.json` sets `"framework": "python"` |
 | Clients dropped valid credentials during an outage | A config or database error during token verification answered 401, which tells the client to discard its token | `AuthError` → 401, `BackendError`/`ConfigError` → 503 with `Retry-After` |

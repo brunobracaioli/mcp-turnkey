@@ -1,3 +1,5 @@
 # LF in the repository and in every working copy: shell hooks and scripts break with
 # CRLF, which Windows checkouts would otherwise produce.
 * text=auto eol=lf
+*.jpg binary
+*.png binary
