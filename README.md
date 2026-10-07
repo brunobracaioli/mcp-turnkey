@@ -94,6 +94,33 @@ pytest -q && ruff check . && mypy src          # green before you change anythin
 git init && git add -A && git commit -m "chore: scaffold from MCP Turnkey"
 ```
 
+**Prefer to let Claude Code do it?** Paste this prompt into
+[Claude Code](https://claude.com/claude-code). It asks for the name, adapts the commands
+to your OS (Linux, macOS, WSL or Windows) and stops before anything that is your decision
+(provider, keys, deploy):
+
+```text
+Create a new MCP server from MCP Turnkey (https://github.com/brunobracaioli/mcp-turnkey).
+
+1. Ask me for the server name (kebab-case, without "mcp-", e.g. acme-crm), its display
+   title and where to create it (default: ~/projects).
+2. Detect my OS and shell. Use `python3` if `python` is missing and confirm Python 3.10+.
+   On WSL, work on the Linux filesystem (~), never under /mnt/c or /mnt/d. On native
+   Windows, the venv lives in .venv\Scripts\, not .venv/bin/.
+3. Clone the repository there and, from its root, run:
+   python scripts/scaffold.py --name <name> --title "<title>"
+4. In the generated project (../mcp-<name>): create .venv, run `pip install -e ".[dev]"`,
+   then `ruff check . && ruff format --check . && mypy src && pytest -q`. Everything must
+   be green before any change. If something fails, stop and show me the error — do not
+   edit code to make it pass.
+5. `git init`, `git add -A` and `git commit -m "chore: scaffold from MCP Turnkey"`. Do not
+   add a remote or push.
+6. Read the generated CLAUDE.md and list the SCAFFOLD: markers grouped by file, with one
+   line on what each one decides. Then ask me about my provider (API base URL, OAuth
+   endpoints, scopes). Do not fill markers, create .env files, generate keys or deploy
+   without asking me.
+```
+
 The scaffold prints the `SCAFFOLD:` markers left for you — each one is a decision about
 your provider (API base URL, OAuth endpoints, scopes, error envelope). Then:
 
